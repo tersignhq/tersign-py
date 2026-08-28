@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tersign"
+version = "0.1.2"
+description = "Tersign — the evidence layer for the agent economy. Offline verification of counter-signed receipts, chains, and evidence bundles. Zero dependencies."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Tersign" }]
+keywords = ["x402", "evidence", "receipts", "agent-economy", "eip-712", "rfc-8785", "verification"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Security :: Cryptography",
+]
+
+[project.urls]
+Homepage = "https://tersign.ai"
+Repository = "https://github.com/tersignhq/tersign-py"
+
+# No console script on purpose: the `tersign` bin name belongs to the npm package;
+# the python surface is `python3 -m tersign …` (zero PATH collision).
+
+[tool.setuptools.packages.find]
+include = ["tersign*"]

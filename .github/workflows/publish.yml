@@ -1,0 +1,75 @@
+# Release: PyPI via trusted publishing (OIDC) — no tokens anywhere.
+# Trigger: push a tag `vX.Y.Z` matching pyproject.toml's AND tersign/__init__.py's version.
+#
+# Prereq (one-time, on pypi.org → project `tersign` → Publishing → Add a new publisher):
+#   Owner: tersignhq · Repository: tersign-py · Workflow: publish.yml · Environment: pypi
+# After that the OIDC identity of THIS workflow in THIS repo is the publish credential; no
+# API token is stored anywhere, which is the same posture as the npm side.
+#
+# Supply-chain posture: the build runs from the tagged source with no third-party actions
+# beyond the pinned official ones; the package is pure-stdlib, so there is no dependency
+# surface to execute at publish time. The tag guard runs BEFORE the build so a mismatched
+# version fails without producing artifacts.
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Build + test only, on demand: lets the pipeline be exercised without a release, so it is
+  # not wholly unproven until the first tag. The publish job below is gated on a tag ref.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Guard - tag matches pyproject.toml and __init__.py
+        run: |
+          TAG_V="${GITHUB_REF_NAME#v}"
+          PY_V="$(python -c "import tomllib,pathlib;print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")"
+          INIT_V="$(python -c "import re,pathlib;print(re.search(r'__version__ = \"([^\"]+)\"', pathlib.Path('tersign/__init__.py').read_text()).group(1))")"
+          echo "tag=$TAG_V pyproject=$PY_V __init__=$INIT_V"
+          [ "$TAG_V" = "$PY_V" ] && [ "$TAG_V" = "$INIT_V" ] || { echo "version mismatch" >&2; exit 1; }
+
+      - name: Tests (stdlib only - no install step, by design)
+        run: python -m unittest discover -s tests -v
+
+      - name: Build
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+
+      - name: Check the sdist actually carries its fixtures
+        run: |
+          python -m pip install --upgrade twine
+          twine check dist/*
+          tar -tzf dist/*.tar.gz | grep -q 'tests/fixtures/tersign-first-13.json' \
+            || { echo "sdist is missing the test fixtures - check MANIFEST.in" >&2; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')   # never publish from a manual dispatch
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # OIDC — the trusted-publishing credential
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

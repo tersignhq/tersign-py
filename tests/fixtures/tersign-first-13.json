@@ -1,0 +1,79 @@
+{
+ "sellerId": "tersign-first",
+ "walkedAt": "2026-08-28",
+ "source": "https://tersign.ai/v1/receipts/{digest}/verify walked backwards from the head",
+ "records": [
+  {
+   "seq": 1,
+   "artifactDigest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+   "prevDigest": null
+  },
+  {
+   "seq": 2,
+   "artifactDigest": "0x89dbfc8c52bd5fa4ed5e879915518f9729cfbd74d9ab020e569eeffd881a4f1c",
+   "prevDigest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4"
+  },
+  {
+   "seq": 3,
+   "artifactDigest": "0xdee12c6dd1f0a263811d26123224b493ddc3ee089a82aec2d149b87a09e10189",
+   "prevDigest": "0x89dbfc8c52bd5fa4ed5e879915518f9729cfbd74d9ab020e569eeffd881a4f1c"
+  },
+  {
+   "seq": 4,
+   "artifactDigest": "0xddc12b814c54daa839b1e9e66820d7d28c5bbf254eec0004de2f9d8ba98331ae",
+   "prevDigest": "0xdee12c6dd1f0a263811d26123224b493ddc3ee089a82aec2d149b87a09e10189"
+  },
+  {
+   "seq": 5,
+   "artifactDigest": "0x3cf272fb879bbe676992167cf2c7d46804f835972204e4b183b96281ebeed632",
+   "prevDigest": "0xddc12b814c54daa839b1e9e66820d7d28c5bbf254eec0004de2f9d8ba98331ae"
+  },
+  {
+   "seq": 6,
+   "artifactDigest": "0x2f1e9eaea561a71d386145886a2b432997d7d91aee95a0d83e3a1cdae1d2da0a",
+   "prevDigest": "0x3cf272fb879bbe676992167cf2c7d46804f835972204e4b183b96281ebeed632"
+  },
+  {
+   "seq": 7,
+   "artifactDigest": "0x236779752d6a336da2dbc965b00031408b2927975a8fe209710afa40ae696ae5",
+   "prevDigest": "0x2f1e9eaea561a71d386145886a2b432997d7d91aee95a0d83e3a1cdae1d2da0a"
+  },
+  {
+   "seq": 8,
+   "artifactDigest": "0xb94bbc4fb7d7097039b2afaf244e30f56820cfe89dd7a2201a9a2a63a8ec4e38",
+   "prevDigest": "0x236779752d6a336da2dbc965b00031408b2927975a8fe209710afa40ae696ae5"
+  },
+  {
+   "seq": 9,
+   "artifactDigest": "0x2c35d95f7c7f87678dd76d902e4c4809219f0952589ea5116af94997524fecf8",
+   "prevDigest": "0xb94bbc4fb7d7097039b2afaf244e30f56820cfe89dd7a2201a9a2a63a8ec4e38"
+  },
+  {
+   "seq": 10,
+   "artifactDigest": "0xe1cfd0af616a04a041bba95901c4b673cb61d8663e447943c2be1497393dc4fa",
+   "prevDigest": "0x2c35d95f7c7f87678dd76d902e4c4809219f0952589ea5116af94997524fecf8"
+  },
+  {
+   "seq": 11,
+   "artifactDigest": "0x7f1570bfb6949fc8fe4d87357e859ba7b901df501b88078a7dca0f4ddb4909b0",
+   "prevDigest": "0xe1cfd0af616a04a041bba95901c4b673cb61d8663e447943c2be1497393dc4fa"
+  },
+  {
+   "seq": 12,
+   "artifactDigest": "0x45c5a3f282896f2899b6d2ae85b9c37d098c8deb6e6e2f49d531be270d757f2a",
+   "prevDigest": "0x7f1570bfb6949fc8fe4d87357e859ba7b901df501b88078a7dca0f4ddb4909b0"
+  },
+  {
+   "seq": 13,
+   "artifactDigest": "0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961",
+   "prevDigest": "0x45c5a3f282896f2899b6d2ae85b9c37d098c8deb6e6e2f49d531be270d757f2a"
+  }
+ ],
+ "expected": {
+  "link_1": "0x837c2d85db422b59f89527ef33bfe862af7230895635b63141b09cde169187a5",
+  "acc_1": "0x7b5215354f7c0f487be015fb059e0e75a4b36fee45d0f0427e659fbb8945a1e2",
+  "acc_13": "0xfc831c0f98c8ea5df6417cd26afa278ed4ab82a1e682d170e47aa4a4173c5511",
+  "commitment_13": "0xcbbef04598368ed02ae67fc0c8ffade6753628d0b8faf4e9211c9dd49a2dbe7b",
+  "head": "0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961"
+ }
+}
