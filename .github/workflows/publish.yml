@@ -33,6 +33,7 @@ jobs:
           python-version: '3.12'
 
       - name: Guard - tag matches pyproject.toml and __init__.py
+        if: startsWith(github.ref, 'refs/tags/v')   # a manual dispatch has no tag to match
         run: |
           TAG_V="${GITHUB_REF_NAME#v}"
           PY_V="$(python -c "import tomllib,pathlib;print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")"
