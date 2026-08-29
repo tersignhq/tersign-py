@@ -1,5 +1,10 @@
 # tersign (Python)
 
+```bash
+pip install tersign
+```
+
+
 Tersign — the evidence layer for the agent economy. This package is the
 **verification-first Python SDK**: zero dependencies, standard library only —
 the verify path a tribunal, examiner, or CI job can run with nothing installed.
@@ -29,6 +34,19 @@ What it covers (v0.1):
   anchor stamps a chain commitment — an accumulator over every counter-signed
   link — so one anchored digest covers the whole prefix; rows anchored earlier
   bind the head record only and say so (`subjectSchema`).
+
+**The bundled copy is a convenience, not a trust root.** A frozen bundle ships this verify
+core inside itself, which is fine for a worked example and wrong for evidence handed to you by
+an interested party — a bundle can ship a checker that blesses it. For adversarial input fetch
+the checker out-of-band from `https://tersign.ai/verify/v1/` (digests at `SHA256SUMS` beside
+it) and diff it against the bundled copy; a difference is itself the finding.
+
+**Check this package against the public corpus yourself.** Since 0.1.4 the sdist carries the
+subset of the [two-sided conformance corpus](https://github.com/tersignhq/evidence-record-conformance)
+these primitives decide — 19 vectors across canonical bytes, digest recompute, chain link and
+chain commitment, both accept and reject arms. `python3 -m unittest discover -s tests` runs
+them. A package whose job is letting you check us without trusting us should ship the means to
+check the package.
 
 Issuing/signing lives in the TypeScript SDK (npm
 [`tersign`](https://www.npmjs.com/package/tersign)); this package is the
