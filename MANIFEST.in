@@ -1,1 +1,2 @@
 recursive-include tests *.py *.json
+recursive-include tests/vectors *.json

@@ -1,0 +1,96 @@
+{
+  "id": "p27-live-chain-commitment-genesis-chain",
+  "kind": "chain_commitment",
+  "expect": "valid",
+  "description": "Live ledger chain: the 13 counter-signed records of the tersign ledger's genesis chain (seq 1 is the genesis receipt, p1), walked backwards from the head through the public /verify endpoint on 2026-08-28 \u2014 artifact digest and prevDigest at each of 13 steps. The accumulator over the 13 recomputed links equals the `acc` inside the confirmed anchor's subject: production anchors keccak256(utf8(canonical({acc, head, schema: 'tersign-chain-commitment-v1', seq}))) rather than the head digest, so the single anchored value commits every record with seq <= 13. Re-walk the chain and re-fold the accumulator yourself; the anchor row carries the subject object, its merkle path to the batch root, and the OpenTimestamps proof.",
+  "input": {
+    "head": {
+      "seq": 13,
+      "digest": "0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961",
+      "acc": "0xfc831c0f98c8ea5df6417cd26afa278ed4ab82a1e682d170e47aa4a4173c5511"
+    },
+    "records": [
+      {
+        "seq": 1,
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null
+      },
+      {
+        "seq": 2,
+        "artifact_digest": "0x89dbfc8c52bd5fa4ed5e879915518f9729cfbd74d9ab020e569eeffd881a4f1c",
+        "prev_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4"
+      },
+      {
+        "seq": 3,
+        "artifact_digest": "0xdee12c6dd1f0a263811d26123224b493ddc3ee089a82aec2d149b87a09e10189",
+        "prev_digest": "0x89dbfc8c52bd5fa4ed5e879915518f9729cfbd74d9ab020e569eeffd881a4f1c"
+      },
+      {
+        "seq": 4,
+        "artifact_digest": "0xddc12b814c54daa839b1e9e66820d7d28c5bbf254eec0004de2f9d8ba98331ae",
+        "prev_digest": "0xdee12c6dd1f0a263811d26123224b493ddc3ee089a82aec2d149b87a09e10189"
+      },
+      {
+        "seq": 5,
+        "artifact_digest": "0x3cf272fb879bbe676992167cf2c7d46804f835972204e4b183b96281ebeed632",
+        "prev_digest": "0xddc12b814c54daa839b1e9e66820d7d28c5bbf254eec0004de2f9d8ba98331ae"
+      },
+      {
+        "seq": 6,
+        "artifact_digest": "0x2f1e9eaea561a71d386145886a2b432997d7d91aee95a0d83e3a1cdae1d2da0a",
+        "prev_digest": "0x3cf272fb879bbe676992167cf2c7d46804f835972204e4b183b96281ebeed632"
+      },
+      {
+        "seq": 7,
+        "artifact_digest": "0x236779752d6a336da2dbc965b00031408b2927975a8fe209710afa40ae696ae5",
+        "prev_digest": "0x2f1e9eaea561a71d386145886a2b432997d7d91aee95a0d83e3a1cdae1d2da0a"
+      },
+      {
+        "seq": 8,
+        "artifact_digest": "0xb94bbc4fb7d7097039b2afaf244e30f56820cfe89dd7a2201a9a2a63a8ec4e38",
+        "prev_digest": "0x236779752d6a336da2dbc965b00031408b2927975a8fe209710afa40ae696ae5"
+      },
+      {
+        "seq": 9,
+        "artifact_digest": "0x2c35d95f7c7f87678dd76d902e4c4809219f0952589ea5116af94997524fecf8",
+        "prev_digest": "0xb94bbc4fb7d7097039b2afaf244e30f56820cfe89dd7a2201a9a2a63a8ec4e38"
+      },
+      {
+        "seq": 10,
+        "artifact_digest": "0xe1cfd0af616a04a041bba95901c4b673cb61d8663e447943c2be1497393dc4fa",
+        "prev_digest": "0x2c35d95f7c7f87678dd76d902e4c4809219f0952589ea5116af94997524fecf8"
+      },
+      {
+        "seq": 11,
+        "artifact_digest": "0x7f1570bfb6949fc8fe4d87357e859ba7b901df501b88078a7dca0f4ddb4909b0",
+        "prev_digest": "0xe1cfd0af616a04a041bba95901c4b673cb61d8663e447943c2be1497393dc4fa"
+      },
+      {
+        "seq": 12,
+        "artifact_digest": "0x45c5a3f282896f2899b6d2ae85b9c37d098c8deb6e6e2f49d531be270d757f2a",
+        "prev_digest": "0x7f1570bfb6949fc8fe4d87357e859ba7b901df501b88078a7dca0f4ddb4909b0"
+      },
+      {
+        "seq": 13,
+        "artifact_digest": "0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961",
+        "prev_digest": "0x45c5a3f282896f2899b6d2ae85b9c37d098c8deb6e6e2f49d531be270d757f2a"
+      }
+    ]
+  },
+  "provenance": {
+    "ledger": "https://tersign.ai",
+    "walk": "curl https://tersign.ai/v1/receipts/0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961/verify  # then follow prevDigest 12 more times to seq 1 (null prevDigest)",
+    "commitment": {
+      "acc": "0xfc831c0f98c8ea5df6417cd26afa278ed4ab82a1e682d170e47aa4a4173c5511",
+      "head": "0x339800528596c7d53d32571ad999695aef6dfc8fc86dcc4fb827bb6080493961",
+      "schema": "tersign-chain-commitment-v1",
+      "seq": 13
+    },
+    "commitment_digest": "0xcbbef04598368ed02ae67fc0c8ffade6753628d0b8faf4e9211c9dd49a2dbe7b",
+    "anchored_digest": "0x7c00ab806c6a9cc3fd654c0cbb107224ccff80642ea289f3c8f226b592647675",
+    "anchor": "curl https://tersign.ai/v1/anchors/seller:0xcbbef04598368ed02ae67fc0c8ffade6753628d0b8faf4e9211c9dd49a2dbe7b",
+    "proof": "curl -O https://tersign.ai/v1/anchors/seller:0xcbbef04598368ed02ae67fc0c8ffade6753628d0b8faf4e9211c9dd49a2dbe7b/proof.ots",
+    "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6",
+    "note": "commitment_digest = keccak256(utf8(canonical(commitment))); the anchor's anchoredDigest = sha256(commitment_digest bytes) (anchor_relation); counter-signatures over each link are secp256k1 personal_sign material (crypto profile, outside the stdlib core)"
+  }
+}

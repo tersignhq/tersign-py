@@ -86,8 +86,20 @@ class CommitmentPins(unittest.TestCase):
         self.assertEqual(exp["commitment_13"], "0xcbbef04598368ed02ae67fc0c8ffade6753628d0b8faf4e9211c9dd49a2dbe7b")
 
     def test_fixture_is_byte_identical_to_the_reference_fixture(self):
-        if not LEDGER_FIXTURE or not os.path.exists(LEDGER_FIXTURE):
-            self.skipTest("no reference fixture supplied (TERSIGN_REFERENCE_FIXTURE unset)")
+        """OPTIONAL cross-check against a private reference copy, when one is on hand.
+
+        This used to be the only cross-implementation check in this package and it never once
+        ran: nothing set TERSIGN_REFERENCE_FIXTURE, so every suite printed OK (skipped=1) and
+        looked green while checking nothing. The real cross-language gate now lives in
+        test_public_conformance.py, decides 19 public two-sided vectors with no environment
+        dependency, and cannot skip. This one stays as a bonus for a monorepo checkout — but a
+        SET-BUT-WRONG path is now a failure rather than a silent skip, because "I pointed it
+        somewhere and it stayed quiet" is exactly the shape that hid the original problem.
+        """
+        if not LEDGER_FIXTURE:
+            self.skipTest("optional: set TERSIGN_REFERENCE_FIXTURE to also byte-diff a private copy")
+        self.assertTrue(os.path.exists(LEDGER_FIXTURE),
+                        "TERSIGN_REFERENCE_FIXTURE is set to a path that does not exist: %s" % LEDGER_FIXTURE)
         with open(FIXTURE, "rb") as a, open(LEDGER_FIXTURE, "rb") as b:
             self.assertEqual(a.read(), b.read())
 

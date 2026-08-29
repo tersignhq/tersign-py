@@ -1,0 +1,33 @@
+{
+  "id": "p26-chain-commitment-complete",
+  "kind": "chain_commitment",
+  "expect": "valid",
+  "description": "Accepting twin of n36/n37: p6's complete set with a head accumulator folded over every recomputed link \u2014 acc_0 = keccak256(utf8('tersign-chain-commitment-v1')), acc_n = keccak256(acc_{n-1} || link_n), link_n = keccak256(artifact || prev || seq_be8) with prev = the previous artifact digest. head.acc equals acc_3, so the presented prefix is the one the commitment was built over. Structural profile only: the counter-signatures over the links and the anchor over the commitment are the crypto and existence profiles.",
+  "input": {
+    "head": {
+      "seq": 3,
+      "digest": "0xdb17ed57683dea4c9ff668a1e769503e933fcc4e133ea0a823f7ddfc7b6106cd",
+      "acc": "0xae28e0e8b22b15cd27de2390efbe4e3c206decbfe5cede4751b85410f6648f4f"
+    },
+    "records": [
+      {
+        "seq": 1,
+        "artifact_digest": "0x4672842890404de85d907f76149e3edb90687d233ad7efbaabf887f888053ef4",
+        "prev_digest": null,
+        "link": "0xf34b26b3f8a9ab82f55baa26c92201624f09195ec0074fcc2af3e58c61b13079"
+      },
+      {
+        "seq": 2,
+        "artifact_digest": "0x5a811da59710bb115a7744189a9732f27883180f5821caa7a99979bc33257c29",
+        "prev_digest": "0x4672842890404de85d907f76149e3edb90687d233ad7efbaabf887f888053ef4",
+        "link": "0x24504b4a1fb4eedda727a2c08e05826d7b441d127457cbe9c16245d8a5eb9694"
+      },
+      {
+        "seq": 3,
+        "artifact_digest": "0xdb17ed57683dea4c9ff668a1e769503e933fcc4e133ea0a823f7ddfc7b6106cd",
+        "prev_digest": "0x5a811da59710bb115a7744189a9732f27883180f5821caa7a99979bc33257c29",
+        "link": "0x657fcd8b25c7e8f9fa0b2f50b7f18e67781d9837014605e2ae6668ac95804f15"
+      }
+    ]
+  }
+}
