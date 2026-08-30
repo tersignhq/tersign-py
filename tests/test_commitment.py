@@ -188,3 +188,31 @@ class VerifyCommitment(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CliSurface(unittest.TestCase):
+    """`python3 -m tersign` must never surface a traceback at a stranger's first command.
+
+    Found 2026-08-30 by installing the PUBLISHED package into a clean venv and typing
+    `verify --help`, which raised FileNotFoundError('--help') — the argument was treated as a
+    path. On a package whose entire job is verification, an unhandled traceback at the first
+    thing anyone types is the worst available first impression.
+    """
+
+    def _run(self, *args):
+        import subprocess, sys, os
+        return subprocess.run([sys.executable, "-m", "tersign", *args],
+                              capture_output=True, text=True,
+                              cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    def test_help_and_version_exit_zero_without_a_traceback(self):
+        for args in (("--help",), ("-h",), ("verify", "--help"), ("--version",)):
+            r = self._run(*args)
+            self.assertEqual(r.returncode, 0, "%s -> %s\n%s" % (args, r.returncode, r.stderr))
+            self.assertNotIn("Traceback", r.stderr, "%s printed a traceback" % (args,))
+
+    def test_a_missing_file_is_a_message_not_a_traceback(self):
+        r = self._run("verify", "/definitely/not/here.json")
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("no such file", r.stderr)

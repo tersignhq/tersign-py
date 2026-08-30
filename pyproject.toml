@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tersign"
-version = "0.1.5"
+version = "0.1.6"
 description = "Tersign — the evidence layer for the agent economy. Offline verification of counter-signed receipts, chains, and evidence bundles. Zero dependencies."
 readme = "README.md"
 requires-python = ">=3.9"

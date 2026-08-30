@@ -15,6 +15,12 @@ from . import verify_receipt, __version__
 
 
 def main(argv):
+    if argv and argv[0] in ("--help", "-h", "help"):
+        print(__doc__)
+        return 0
+    if argv and argv[0] in ("--version", "-V"):
+        print(__version__)
+        return 0
     if len(argv) < 2 or argv[0] != "verify":
         print(__doc__)
         return 2
@@ -40,7 +46,23 @@ def main(argv):
                 " block %s" % block if block else ""))
         return 0 if body.get("found") and body.get("chainOk") else 1
 
-    artifact = json.load(open(target))
+    # --help / -h / an unreadable path must not surface a traceback. The first thing a stranger
+    # types at any CLI is --help, and on a package whose whole job is verification an unhandled
+    # FileNotFoundError is the worst possible first impression. Found 2026-08-30 by installing
+    # the PUBLISHED package into a clean venv and typing exactly that.
+    if target in ("--help", "-h", "help"):
+        print(__doc__)
+        return 0
+    try:
+        with open(target) as fh:
+            artifact = json.load(fh)
+    except FileNotFoundError:
+        print("no such file: %s\n\nA receipt path, or a 0x-prefixed 32-byte digest with --ledger."
+              % target, file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as exc:
+        print("%s is not JSON: %s" % (target, exc), file=sys.stderr)
+        return 2
     if "artifact" in artifact:  # a bundle record file — verify its inner artifact
         artifact = artifact["artifact"]
     result = verify_receipt(artifact)

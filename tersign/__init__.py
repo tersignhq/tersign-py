@@ -10,7 +10,7 @@ Issuing/signing stays in the TypeScript SDK (npm `tersign`) for now; this
 package is the independent second implementation of the verification surface —
 cross-implementation by construction.
 """
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 from .canonical import canonical, digest_of, chain_link_digest, GENESIS  # noqa: F401
 from .canonical import (  # noqa: F401
