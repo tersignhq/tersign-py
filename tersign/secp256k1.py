@@ -93,9 +93,10 @@ def recover_pubkey(msg_hash: bytes, signature: bytes):
     if not (1 <= r < N and 1 <= s < N):
         raise ValueError("r/s out of range")
     if s > N // 2:
-        # Ethereum canonical low-s: reject the malleated twin so each signer/message
-        # admits exactly ONE accepted encoding — an evidence artifact must not have
-        # byte-distinct "also valid" variants (review finding 2026-08-27).
+        # Ethereum canonical low-s: reject the malleated high-s twin (review finding
+        # 2026-08-27). This alone does NOT make the encoding unique: this function still
+        # accepts v 0/1 as well as 27/28, and recover_address decodes any hex case. The one
+        # accepted encoding is enforced for receipts by verify.signature_error, before recovery.
         raise ValueError("high-s signature rejected (non-canonical)")
 
     # x = r (recovery ids 2/3 — r + N — are astronomically rare and not emitted

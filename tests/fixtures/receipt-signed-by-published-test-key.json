@@ -1,0 +1,12 @@
+{
+  "format": "eip712",
+  "payload": {
+    "version": 1,
+    "network": "eip155:8453",
+    "resourceUrl": "https://seller.example/v1/resource",
+    "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "issuedAt": 1790000000,
+    "transaction": ""
+  },
+  "signature": "0xc583ec11c0ba6d7e5aedb4d1eb8c5e9640c78abad3cd1835460291ff9a80deb5692477636c744d208a2bfafa20437049ec70866378154dc88c34f08fb0bf987c1c"
+}

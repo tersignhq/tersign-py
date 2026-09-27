@@ -5,29 +5,124 @@ verify_link:    checks one counter-signed chain link (the ledger's signature cla
 For full frozen-bundle verification use the bundle's own bundled verifier
 (tersign-evidence-bundle-v1 ships verify/verify_bundle.py inside the artifact).
 """
+import re
+
 from .canonical import digest_of, chain_link_digest, GENESIS, fold_accumulator, commitment_digest  # noqa: F401
 from .eip712 import recover_receipt_signer
+from .known_keys import published_key_label
 from .secp256k1 import eip191_hash_bytes32, recover_address
+
+# \A...\Z, not ^...$: Python's `$` also matches before a final "\n", so an address read from a
+# file ("0x...\n") passed validation and then failed the comparison as a signer MISMATCH, telling
+# the operator a genuine receipt "was not signed by that key, or was altered". Call sites use
+# fullmatch too, so a later .match() call cannot bring the case back on its own.
+ADDRESS_RE = re.compile(r"\A0x[0-9a-fA-F]{40}\Z")
+
+# What the EIP-712 signature actually covers. Anything else in the file rides along unsigned:
+# it changes the digest (the ledger's content address) but not the recovered signer.
+SIGNED_RECEIPT_FIELDS = ("version", "network", "resourceUrl", "payer", "issuedAt", "transaction")
+_ENVELOPE_FIELDS = ("format", "payload", "signature")
+
+
+# The ONE accepted encoding of an EIP-712 signature: "0x" + 130 lower-case hex digits,
+# r || s || v, v = 27 or 28 (what viem emits). r/s range and low-s are enforced by
+# secp256k1.recover_pubkey. The TypeScript twin applies the same rules (sdk/src/receipt/binding.ts
+# signatureError), with the same reason texts. Without this, one issuance had several "also valid"
+# byte-distinct copies - the recovery-id twin (v 0/1), upper-case hex, a missing 0x, whitespace or
+# a trailing newline inside the hex (bytes.fromhex skips it) - each recovering the real signer
+# under its own content digest (release review 2026-09-27).
+_CANONICAL_SIG_SHAPE = re.compile(r"0x[0-9a-fA-F]{130}")
+
+
+def signature_error(sig):
+    """Why `sig` is not the canonical encoding, or None. Package text only: nothing from the
+    file is echoed."""
+    if not isinstance(sig, str):
+        kind = ("null" if sig is None else "an array" if isinstance(sig, list)
+                else "an object" if isinstance(sig, dict) else "a boolean" if isinstance(sig, bool)
+                else "a number" if isinstance(sig, (int, float)) else "a %s" % type(sig).__name__)
+        return "signature must be a 0x-prefixed hex string of 65 bytes (r||s||v), not %s" % kind
+    if not _CANONICAL_SIG_SHAPE.fullmatch(sig):
+        return "signature must be a 0x-prefixed hex string of 65 bytes (r||s||v)"
+    if sig != sig.lower():
+        return "signature hex must be lower-case (non-canonical)"
+    v = int(sig[130:132], 16)
+    if v in (0, 1):
+        return "recovery id %d rejected (non-canonical): v must be 27 or 28" % v
+    if v not in (27, 28):
+        return "unsupported recovery id %d" % v
+    return None
+
+
+def _unsigned_fields(artifact):
+    out = ["payload.%s" % k for k in sorted(artifact.get("payload", {}))
+           if k not in SIGNED_RECEIPT_FIELDS]
+    out += sorted(k for k in artifact if k not in _ENVELOPE_FIELDS)
+    return out
 
 
 def verify_receipt(artifact: dict, expected_signer: str = None) -> dict:
     """Structural + signature verification of a SignedReceipt, fully offline.
 
-    Returns {valid, signer, digest, reason?}. Mirrors sdk verifyReceipt semantics:
-    expected_signer implements the spec's payTo-key authorization model.
+    Returns {valid, signer, signerBound, digest, testKey?, unsignedFields?, reason?}.
+
+    valid        the signature is well-formed and recovers to an address — and, when
+                 expected_signer is given, to exactly that address. The TypeScript twin's
+                 verifyReceipt (npm 0.5.0) applies the same input rules: the signed uint256
+                 fields (version, issuedAt) must be JSON integers, as the ledger requires at
+                 ingest; the signed string fields must be strings; the signature must be the
+                 one canonical encoding (see signature_error: 0x + 130 lower-case hex digits,
+                 v 27/28, low-s); only None and "" mean no expected_signer. One known
+                 difference in this function: it accepts a signed integer above 2**53-1 (up to
+                 2**256-1), which the TypeScript twin refuses before recovery. The two CLIs
+                 differ on more input classes; sdk/src/verify-bin.ts lists the measured ones.
+                 expected_signer implements the spec's payTo-key authorization model.
+    signerBound  True only when expected_signer was supplied and matched. When False, `signer`
+                 is whatever the receipt's own signature recovers to, and ECDSA recovery yields
+                 an address for ANY payload: an edited receipt still returns valid:True, with a
+                 different signer. So valid:True with signerBound:False proves neither who
+                 signed nor that the payload is unmodified. Bind it: pass the issuer's address,
+                 obtained out-of-band.
+    testKey      present when the recovered signer is a PUBLISHED test key (tersign.known_keys):
+                 anyone can produce that signature, so even a bound match says nothing about
+                 who issued the receipt.
+    unsignedFields  fields present in the artifact that the EIP-712 signature does not cover.
     """
+    # Only None and "" mean "not supplied" (the TypeScript twin treats "" as absent). Any other
+    # falsy value (0, False, [], {}) is a malformed argument and fails like one: a bare
+    # `if not expected_signer` used to read it as "no binding asked for" and return valid:True.
+    if expected_signer is None or (isinstance(expected_signer, str) and expected_signer == ""):
+        expected_signer = None
+    if expected_signer is not None and not (
+            isinstance(expected_signer, str) and ADDRESS_RE.fullmatch(expected_signer)):
+        return {"valid": False, "signerBound": False,
+                "reason": "expected_signer is not a 20-byte 0x-prefixed hex address"}
+    if not isinstance(artifact, dict) or not isinstance(artifact.get("payload"), dict):
+        return {"valid": False, "signerBound": False,
+                "reason": "not a signed receipt: expected {format, payload{...}, signature}"}
+    bad_sig = signature_error(artifact.get("signature"))
+    if bad_sig is not None:
+        return {"valid": False, "signerBound": False, "reason": bad_sig}
     try:
         signer = recover_receipt_signer(artifact)
         # Inside the try: a float-carrying (or over-deep) artifact must return
         # valid:False, never traceback — digest_of raises on domain violations
         #.
         digest = digest_of(artifact)
+        unsigned = _unsigned_fields(artifact)
     except Exception as e:  # noqa: BLE001
-        return {"valid": False, "reason": str(e)}
-    if expected_signer and signer.lower() != expected_signer.lower():
-        return {"valid": False, "signer": signer, "digest": digest,
-                "reason": "signer does not match expected authorization key"}
-    return {"valid": True, "signer": signer, "digest": digest}
+        return {"valid": False, "signerBound": False, "reason": str(e)}
+    out = {"valid": True, "signer": signer,
+           "signerBound": expected_signer is not None, "digest": digest}
+    label = published_key_label(signer)
+    if label:
+        out["testKey"] = label
+    if unsigned:
+        out["unsignedFields"] = unsigned
+    if expected_signer is not None and signer.lower() != expected_signer.lower():
+        out.update(valid=False, signerBound=False,
+                   reason="signer does not match expected authorization key")
+    return out
 
 
 def verify_link(artifact_digest: str, prev_digest: str, seq: int,

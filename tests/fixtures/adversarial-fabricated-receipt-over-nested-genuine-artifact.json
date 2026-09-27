@@ -1,0 +1,24 @@
+{
+  "format": "eip712",
+  "payload": {
+    "version": 1,
+    "network": "eip155:8453",
+    "resourceUrl": "https://attacker.example/refund-all",
+    "payer": "0x000000000000000000000000000000000000dEaD",
+    "issuedAt": 1790000000,
+    "transaction": "0xdeadbeef"
+  },
+  "signature": "0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+  "artifact": {
+    "format": "eip712",
+    "payload": {
+      "issuedAt": 1783761710,
+      "network": "eip155:8453",
+      "payer": "0x36f82906859E5B0bd076069f8cdfAea355358b14",
+      "resourceUrl": "https://tersign-ledger.kevinn-zhang.workers.dev/v1/receipts/genesis/demo",
+      "transaction": "",
+      "version": 1
+    },
+    "signature": "0x88e3f596dc8e6e5f2aeac45b45eac4484c09e2f58a2b787c73469e5927706b18341c362491ecdc0df8764831b07f499210523eb11200bacf340869f50a4c46e81b"
+  }
+}
