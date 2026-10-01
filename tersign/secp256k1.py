@@ -15,6 +15,8 @@ on-curve assert). Build-time differential against viem-produced signatures is th
 authoritative check (measured, not inferred).
 """
 
+import re
+
 from .keccak import keccak256 as keccak_256
 
 # secp256k1 parameters
@@ -93,10 +95,12 @@ def recover_pubkey(msg_hash: bytes, signature: bytes):
     if not (1 <= r < N and 1 <= s < N):
         raise ValueError("r/s out of range")
     if s > N // 2:
-        # Ethereum canonical low-s: reject the malleated high-s twin (review finding
-        # 2026-08-27). This alone does NOT make the encoding unique: this function still
-        # accepts v 0/1 as well as 27/28, and recover_address decodes any hex case. The one
-        # accepted encoding is enforced for receipts by verify.signature_error, before recovery.
+        # Ethereum low-s (EIP-2): refuse the malleated twin (s' = n - s, v flipped), which
+        # recovers the same signer. That is all this line guarantees. The signature string is
+        # still not unique here: this function takes v 0/1 as well as 27/28, recover_address
+        # decodes any hex case, and one signer produces a different low-s signature per nonce.
+        # The ledger's own signatures (counter-signature and anchor signature) accept one
+        # encoding per signature: countersignature_error, via recover_ledger_signer.
         raise ValueError("high-s signature rejected (non-canonical)")
 
     # x = r (recovery ids 2/3 — r + N — are astronomically rare and not emitted
@@ -149,3 +153,56 @@ def eip191_hash_text(text: str) -> bytes:
 def recover_address(msg_hash: bytes, signature_hex: str) -> str:
     sig = bytes.fromhex(signature_hex[2:] if signature_hex.startswith("0x") else signature_hex)
     return pubkey_to_address(recover_pubkey(msg_hash, sig))
+
+
+# The one accepted encoding of a signature the LEDGER makes: its counter-signature over a chain
+# link and its anchor signature over "tersign-anchor-v1:" + batch root. Everything is decided on
+# the bytes BEFORE recovery: the string is exactly "0x" (lower-case x) followed by 130 hex digits
+# of either case, no whitespace anywhere, decoding to 65 bytes r || s || v; v is 27 or 28 (0/1 is
+# refused, never normalised); s <= n/2 (a high-s signature is refused, never flipped to n - s);
+# 1 <= r < n and s >= 1. Only then is the EIP-191 signer recovered. This gives one encoding per
+# signature, so a re-encoding of a ledger signature is refused; it does not make the signature
+# unique per signer and message (the signer can make another valid one with another nonce), so
+# a deduplication key is (signer, message), never the signature bytes. Party signatures do not
+# pass through here. Reason codes are the crypto profile's.
+_COUNTERSIG_SHAPE = re.compile(r"0x[0-9a-fA-F]{130}")
+COUNTERSIG_REASONS = {
+    "malformed_signature": "not the one accepted encoding: '0x' then 130 hex digits (65 bytes r||s||v) with v 27 or 28",
+    "non_canonical_s": "high-s signature (s > n/2): refused, never normalised",
+    "unrecoverable": "the signature defines no public key",
+}
+
+
+def countersignature_error(signature_hex):
+    """Reason code if `signature_hex` is not the one accepted counter-signature encoding, else None."""
+    if not isinstance(signature_hex, str) or not _COUNTERSIG_SHAPE.fullmatch(signature_hex):
+        return "malformed_signature"
+    sig = bytes.fromhex(signature_hex[2:])
+    if sig[64] not in (27, 28):
+        return "malformed_signature"
+    r = int.from_bytes(sig[0:32], "big")
+    s = int.from_bytes(sig[32:64], "big")
+    if s > N // 2:
+        return "non_canonical_s"
+    if not (1 <= r < N and s >= 1):
+        return "unrecoverable"
+    return None
+
+
+def recover_ledger_signer(msg_hash: bytes, signature_hex) -> str:
+    """Address behind a ledger signature over the EIP-191 hash `msg_hash`, after the one-encoding
+    check, or ValueError whose text starts with the reason code."""
+    why = countersignature_error(signature_hex)
+    if why is not None:
+        raise ValueError("%s: %s" % (why, COUNTERSIG_REASONS[why]))
+    try:
+        pt = recover_pubkey(msg_hash, bytes.fromhex(signature_hex[2:]))
+    except ValueError as e:
+        raise ValueError("unrecoverable: %s" % e) from None
+    return pubkey_to_address(pt)
+
+
+def recover_countersigner(link32: bytes, signature_hex) -> str:
+    """Address that counter-signed the raw 32-byte chain link (EIP-191), or ValueError whose text
+    starts with the reason code."""
+    return recover_ledger_signer(eip191_hash_bytes32(link32), signature_hex)

@@ -1,0 +1,333 @@
+{
+  "schema": "tersign-countersignature-profile-fixture-v1",
+  "generated_by": "scripts/gen-countersignature-profile.py",
+  "profile": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/README.md 'The check' steps 2-4",
+  "encoding": "'0x' (exactly) + 130 hex digits of either case = 65 bytes r || s || v; v in {27, 28}; 1 <= r < n and 1 <= s <= n/2, checked on the bytes before recovery and never normalised; EIP-191 personal_sign recovery over the raw 32-byte link must equal the declared ledger signer",
+  "reject_reasons": [
+    "malformed_signature",
+    "non_canonical_s",
+    "unrecoverable",
+    "signer_mismatch"
+  ],
+  "population": {
+    "pr11_vectors": 18,
+    "carried": 11,
+    "excluded": [
+      "cn7-non-hex-artifact-digest",
+      "cn8-negative-seq",
+      "cn9-seq-out-of-range",
+      "cn10-seq-wrong-type-string",
+      "cn11-seq-wrong-type-bool",
+      "cn12-malformed-ledger-signer",
+      "cn13-malformed-prev-digest"
+    ],
+    "excluded_why": "malformed_input class: field shapes of the link inputs, whose rules are still moving in PR #11",
+    "derived": 10
+  },
+  "vectors": [
+    {
+      "id": "cp1-live-genesis-link-countersignature",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cp1-live-genesis-link-countersignature.json",
+      "expect": "valid",
+      "description": "Live: the tersign ledger's counter-signature over the genesis chain link (p1 provenance, link recomputed exactly as p4). personal_sign recovery returns the pinned ledger_signer.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      }
+    },
+    {
+      "id": "cp2-test-key-accepting-twin",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cp2-test-key-accepting-twin.json",
+      "expect": "valid",
+      "description": "Accepting twin of cn4: a published TEST key's personal_sign over the same link, declared signer = that key. A runner that hard-codes the tersign signer instead of reading ledger_signer fails here.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xc71e83c3996f7eaa85353b606ec9d78e05cd7633ec4ced0a7fbced96cb7f6f412caf157b6be680cd45c776fcd239ce088719d9313edf12e96295b2cb2ce2dc761c",
+        "ledger_signer": "0xc6c2919698cd8f3c63e731f9231871f75138e60b"
+      }
+    },
+    {
+      "id": "cp3-prev-digest-absent-key-equals-null",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cp3-prev-digest-absent-key-equals-null.json",
+      "expect": "valid",
+      "description": "prev_digest key is omitted entirely (not merely null). Must resolve identically to cp1 (null): both declare genesis, both recompute the same link, both verify against the same live counter-signature.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      }
+    },
+    {
+      "id": "cn1-signature-moved-to-another-seq",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn1-signature-moved-to-another-seq.json",
+      "expect": "reject",
+      "description": "The live counter-signature presented for the same artifact at seq 2. The link commits to position, so the recovered key is not the ledger's: a counter-signature cannot be moved along the chain.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 2,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "signer_mismatch",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "cn2-foreign-signer-claims-ledger",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn2-foreign-signer-claims-ledger.json",
+      "expect": "reject",
+      "description": "A different key (the published test key) signs the genuine link, but the record claims the ledger as signer. Recovery returns the test key.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xc71e83c3996f7eaa85353b606ec9d78e05cd7633ec4ced0a7fbced96cb7f6f412caf157b6be680cd45c776fcd239ce088719d9313edf12e96295b2cb2ce2dc761c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "signer_mismatch",
+      "twin": "cp2-test-key-accepting-twin"
+    },
+    {
+      "id": "cn3-high-s-malleated-live-signature",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn3-high-s-malleated-live-signature.json",
+      "expect": "reject",
+      "description": "The live signature malleated to s' = n - s with v flipped. It RECOVERS TO THE SAME LEDGER SIGNER, so a runner that only compares recovered addresses accepts it. EIP-2 low-s rejects it: two distinct signature byte strings must not both verify one link.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bfc4eb7e7e41000392418c64e66e26c9317764ad43f28fb61c7631f2fd55f642241b",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "non_canonical_s",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "cn4-raw-digest-signature-no-eip191-prefix",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn4-raw-digest-signature-no-eip191-prefix.json",
+      "expect": "reject",
+      "description": "The test key signs the raw 32-byte link without the EIP-191 personal_sign prefix; the record declares the test key. Recovering over the prefixed hash (the profile's domain) returns a different key. A runner that recovers over the raw digest accepts it: the domain must be pinned.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xc71e83c3996f7eaa85353b606ec9d78e05cd7633ec4ced0a7fbced96cb7f6f411a00c7880ff756709ace45bb5efabcfdfe1bb1b14cbe4ba7309c773a0fa87ac41c",
+        "ledger_signer": "0xc6c2919698cd8f3c63e731f9231871f75138e60b"
+      },
+      "reject_reason": "signer_mismatch",
+      "twin": "cp2-test-key-accepting-twin"
+    },
+    {
+      "id": "cn5-truncated-64-byte-signature",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn5-truncated-64-byte-signature.json",
+      "expect": "reject",
+      "description": "The live signature with its recovery byte dropped (64 bytes). No key is recovered from an incomplete signature; it must not be treated as unverifiable-but-fine.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "cn6-recovery-byte-out-of-range",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn6-recovery-byte-out-of-range.json",
+      "expect": "reject",
+      "description": "The live signature with v = 29. personal_sign signatures carry v in {27, 28}; any other value is malformed, not silently normalized.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1d",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "cn14-signature-missing-0x-prefix",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn14-signature-missing-0x-prefix.json",
+      "expect": "reject",
+      "description": "countersignature is the correct 130 hex digits but without the 0x prefix. This is a malformed *signature field*, not a malformed_input -- the distinction pins that field-shape checks for the other declared fields happen before signature parsing, while the signature's own shape is still judged under malformed_signature.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "fccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "cn15-signature-embedded-whitespace",
+      "source": "tersignhq/evidence-record-conformance PR #11 (crypto profile), head 1e08f4e, crypto/vectors/cn15-signature-embedded-whitespace.json",
+      "expect": "reject",
+      "description": "countersignature has a stray space inside the hex body. A verifier that strips/cleans the field before parsing (rather than requiring the exact declared form) can be tricked into accepting a signature encoding that was never declared valid.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add 7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "tv1-recovery-id-1-twin-of-live",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "cp1's live signature with v = 28 rewritten as the recovery id 1. It recovers the same ledger signer; v must be 27 or 28, so it is refused, not normalised.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d01",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "tv2-test-key-v27-accepting",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "valid",
+      "description": "The published test key's personal_sign over cp1's link with recovery byte 27: the accepting twin of tv3 and tv9 (the published accepting vectors all carry v = 28).",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xf9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f92094fd10a0e60c81d6b30a15739a882554ab79336f40096237d3f043f564fd3a1b",
+        "ledger_signer": "0xc6c2919698cd8f3c63e731f9231871f75138e60b"
+      }
+    },
+    {
+      "id": "tv3-recovery-id-0-twin",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "tv2 with v = 27 rewritten as the recovery id 0: recovers the same key, refused.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xf9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f92094fd10a0e60c81d6b30a15739a882554ab79336f40096237d3f043f564fd3a00",
+        "ledger_signer": "0xc6c2919698cd8f3c63e731f9231871f75138e60b"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "tv2-test-key-v27-accepting"
+    },
+    {
+      "id": "tv4-upper-case-0X-prefix",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "cp1's signature behind '0X'. The prefix is exactly '0x' (crypto/README.md: exactly `0x` followed by 130 hex digits).",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0Xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "tv5-upper-case-hex-digits-accepting"
+    },
+    {
+      "id": "tv5-upper-case-hex-digits-accepting",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "valid",
+      "description": "cp1's signature with upper-case hex digits behind '0x': the digits may be either case, only the prefix is fixed. Same 65 bytes as cp1.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xFCCC1ADD7301C688E03311FF04B9AECAC4F0D81A468FC95128B24AA0C8AFF2BF3B148181BEFFFC6DBE739B1991D936CD434A2FA2BCB8EA1F49A06B8F7A3FFF1D1C",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      }
+    },
+    {
+      "id": "tv6-trailing-newline",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "cp1's signature followed by '\\n' (a value read from a file). A '$'-anchored Python regex matches before a final newline; the encoding is the 132 characters and nothing else.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c\n",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "tv7-leading-space",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "cp1's signature with one leading space: never stripped.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": " 0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "tv8-zero-r-and-s",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "Well-formed bytes, v = 27, r = s = 0: defines no public key.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001b",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "unrecoverable",
+      "twin": "cp1-live-genesis-link-countersignature"
+    },
+    {
+      "id": "tv9-high-s-twin-of-v27",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "tv2 malleated to s' = n - s with v 27 -> 28 (cn3 covers 28 -> 27). Recovers the same key; low-s is checked on the bytes before recovery.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xf9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9df6b02ef5f19f37e294cf5ea8c6577d9660363b3400896d987fe6e48dad144071c",
+        "ledger_signer": "0xc6c2919698cd8f3c63e731f9231871f75138e60b"
+      },
+      "reject_reason": "non_canonical_s",
+      "twin": "tv2-test-key-v27-accepting"
+    },
+    {
+      "id": "tv10-66-byte-signature-trailing-byte",
+      "source": "derived (this repo, scripts/gen-countersignature-profile.py)",
+      "expect": "reject",
+      "description": "cp1's signature with one extra byte appended: '0x' + 132 hex digits (66 bytes). Its first 65 bytes are the genuine signature, so an open-ended length rule reads the right r, s and v from them; the encoding is exactly 130 hex digits.",
+      "input": {
+        "artifact_digest": "0xe5874f1ffe87f0a6dd9eb157730f67b86ee4538b125fe30fcc4e165213dd3fc4",
+        "prev_digest": null,
+        "seq": 1,
+        "countersignature": "0xfccc1add7301c688e03311ff04b9aecac4f0d81a468fc95128b24aa0c8aff2bf3b148181befffc6dbe739b1991d936cd434a2fa2bcb8ea1f49a06b8f7a3fff1d1c00",
+        "ledger_signer": "0x9d38BA84730271eb27Ac9bD4Bd2620c08dB4FDa6"
+      },
+      "reject_reason": "malformed_signature",
+      "twin": "cp1-live-genesis-link-countersignature"
+    }
+  ]
+}

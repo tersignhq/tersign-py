@@ -10,7 +10,7 @@ import re
 from .canonical import digest_of, chain_link_digest, GENESIS, fold_accumulator, commitment_digest  # noqa: F401
 from .eip712 import recover_receipt_signer
 from .known_keys import published_key_label
-from .secp256k1 import eip191_hash_bytes32, recover_address
+from .secp256k1 import recover_countersigner
 
 # \A...\Z, not ^...$: Python's `$` also matches before a final "\n", so an address read from a
 # file ("0x...\n") passed validation and then failed the comparison as a signer MISMATCH, telling
@@ -127,16 +127,23 @@ def verify_receipt(artifact: dict, expected_signer: str = None) -> dict:
 
 def verify_link(artifact_digest: str, prev_digest: str, seq: int,
                 countersignature: str, ledger_signer: str) -> dict:
-    """Verify one counter-signed chain link (EIP-191 over the raw 32-byte link digest)."""
+    """Verify one counter-signed chain link (EIP-191 over the raw 32-byte link digest).
+
+    The counter-signature must be its one accepted encoding, decided on the bytes before
+    recovery (secp256k1.countersignature_error): "0x" then 130 hex digits of either case (no
+    whitespace, no other prefix), v 27 or 28, s <= n/2. A high-s or v 0/1 re-encoding of the
+    ledger's genuine signature recovers the same ledger key and is refused, with `reason`
+    starting with the crypto profile's code (malformed_signature, non_canonical_s,
+    unrecoverable). This rule is for the ledger's counter-signature only; receipt signatures
+    follow signature_error above."""
     link = chain_link_digest(artifact_digest, prev_digest, seq)
     try:
-        addr = recover_address(
-            eip191_hash_bytes32(bytes.fromhex(link[2:])), countersignature)
+        addr = recover_countersigner(bytes.fromhex(link[2:]), countersignature)
     except Exception as e:  # noqa: BLE001
         return {"valid": False, "link": link, "reason": str(e)}
     ok = addr.lower() == ledger_signer.lower()
     return {"valid": ok, "link": link, "signer": addr,
-            **({} if ok else {"reason": "countersignature signer mismatch"})}
+            **({} if ok else {"reason": "signer_mismatch: the countersignature does not recover to ledger_signer"})}
 
 
 def verify_commitment(records, commitment: dict) -> dict:

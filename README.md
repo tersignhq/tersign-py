@@ -41,7 +41,7 @@ or valueless flag is refused, never ignored. A digest lookup (`verify 0x<digest>
 prints the ledger's answer and the verdict `PASS (ledger-reported)` or `FAIL (ledger-reported)`:
 nothing in it is verified locally.
 
-What it covers (v0.1):
+What it covers (v0.2):
 
 - **RFC 8785 (JCS) canonical form** + the Tersign artifact digest
   (`keccak256(utf8(JCS(v)))`) and chain-link constructor — byte-compatible with
@@ -53,7 +53,10 @@ What it covers (v0.1):
   recovers the issuer, under a different digest, so it is refused.
 - **Counter-signature verification** (`verify_link`): EIP-191 over the raw
   32-byte chain-link digest, recovered against the published ledger signer
-  (`https://tersign.ai/v1/ledger`).
+  (`https://tersign.ai/v1/ledger`). The counter-signature must be its one
+  accepted encoding, checked on the bytes before recovery: `0x` + 130 hex
+  digits, v 27/28, low-s. Its high-s and v 0/1 re-encodings recover the same
+  ledger key and are refused.
 - **Chain commitment recompute** (`verify_commitment`): since 2026-08-28 each
   anchor stamps a chain commitment — an accumulator over every counter-signed
   link — so one anchored digest covers the whole prefix; rows anchored earlier
