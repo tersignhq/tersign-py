@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "tersign"
-version = "0.2.0"
+version = "0.2.1"
 description = "Tersign — the evidence layer for the agent economy. Offline verification of signed receipts, counter-signed chain links and chain commitments. Zero dependencies."
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Tersign" }]
 keywords = ["x402", "evidence", "receipts", "agent-economy", "eip-712", "rfc-8785", "verification"]
 classifiers = [

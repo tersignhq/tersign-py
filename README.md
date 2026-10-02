@@ -84,3 +84,6 @@ the artifact, so bundle verification never depends on an install.
 
 No console script on purpose: the `tersign` bin name belongs to the npm
 package; the Python surface is `python3 -m tersign`.
+
+License: Apache-2.0 from 0.2.1; earlier releases were MIT. See `LICENSE` and
+`NOTICE`.

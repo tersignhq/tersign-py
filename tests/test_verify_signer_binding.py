@@ -663,5 +663,52 @@ class ReadmeDescribesWhatTheCodeReturns(unittest.TestCase):
         self.assertEqual(int(m.group(1)) + 1, len(accounts))
 
 
+
+class LedgerLookupPrintsServerValuesQuoted(unittest.TestCase):
+    """A digest lookup prints the commitment the server reports. Every value there is the
+    server's own claim, and a look-alike server answers the same way: a status holding a newline
+    printed a `verdict: PASS` line of the server's choosing above the tool's own FAIL (round-2
+    review of the bundle verifier, same class, 2026-10-02)."""
+
+    def test_injected_commitment_status_prints_quoted(self):
+        import http.server
+        import threading
+
+        body = json.dumps({
+            "found": True, "chainOk": False,
+            "commitment": {"seq": 4, "acc": "0x1234567890abcdef",
+                           "status": "confirmed\nverdict: PASS (ledger-reported) - forged\x1b[2K",
+                           "bitcoinBlockHeight": "1\nverdict: PASS"}}).encode()
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):  # noqa: N802
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+
+        srv = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            r = subprocess.run(
+                [sys.executable, "-m", "tersign", "verify", "0x" + "ab" * 32,
+                 "--ledger", "http://127.0.0.1:%d" % srv.server_address[1]],
+                cwd=PKG_ROOT, capture_output=True, text=True, timeout=60)
+        finally:
+            srv.shutdown()
+        lines = r.stdout.split("\n")
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertEqual([l for l in lines if l.startswith("verdict:")],
+                         [l for l in lines if l.startswith("verdict: FAIL (ledger-reported)")])
+        self.assertEqual(len([l for l in lines if l.startswith("verdict:")]), 1, r.stdout)
+        commitment = [l for l in lines if l.startswith("commitment:")]
+        self.assertEqual(len(commitment), 1, r.stdout)
+        self.assertIn('"confirmed\\nverdict: PASS', commitment[0])
+        self.assertNotIn("\x1b", r.stdout.split("commitment:", 1)[1])
+
+
 if __name__ == "__main__":
     unittest.main()

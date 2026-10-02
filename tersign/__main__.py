@@ -244,10 +244,15 @@ def _lookup_digest(target, opts):
     print(json.dumps(body, indent=2))
     cm = body.get("commitment")
     if cm:  # chains anchored under tersign-chain-commitment-v1 (since 2026-08-28)
+        # Every value here is the server's own claim (a look-alike server answers the same way),
+        # so each prints as a number or a quoted string, never raw: a status holding a newline
+        # once could print a verdict line of the server's choosing.
+        def shown(v):
+            return str(v) if isinstance(v, int) and not isinstance(v, bool) else _quoted(v)
         block = cm.get("bitcoinBlockHeight")
         print("commitment: seq <= %s committed (acc %s…) — %s%s" % (
-            cm.get("seq"), str(cm.get("acc", ""))[:10], cm.get("status"),
-            " block %s" % block if block else ""))
+            shown(cm.get("seq")), _quoted(str(cm.get("acc", ""))[:10]), _quoted(cm.get("status")),
+            " block %s" % shown(block) if block else ""))
     ok = bool(body.get("found") and body.get("chainOk"))
     # The verdict is the LEDGER's answer about itself: nothing above was re-verified here (no
     # countersignature checked against a pinned key), and a look-alike server can answer the same.
